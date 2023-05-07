@@ -16,6 +16,9 @@ class WarehouseIndividual(IntVectorIndividual):
             pass
         return 0
 
+    def build_genome(self, forklift_list: dict):
+        pass
+
     def obtain_all_path(self):
         # TODO
         pass
