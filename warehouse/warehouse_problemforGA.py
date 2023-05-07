@@ -12,22 +12,25 @@ class WarehouseProblemGA(Problem):
         self.agent_search = agent_search
 
     def generate_individual(self) -> "WarehouseIndividual":
-        new_individual = WarehouseIndividual(self, len(self.forklifts)+len(self.products))
+        total_products=len(self.products)
+        total_forklifts=len(self.forklifts)
+        new_individual = WarehouseIndividual(self, total_forklifts + total_products)
         forklift_list = {i: [] for i in enumerate(self.forklifts)}
-        product_stack = self.products
+        product_stack = list(range(total_products))
         product_pick = None
         while len(product_stack) != 0:
-            seq = random.sample(range(len(self.forklifts)), len(self.forklifts))
+            seq = random.sample(range(total_forklifts), total_forklifts)
             for step in seq:
-                forklift = self.forklifts[step]
-                closest = 0
                 if len(product_stack) == 0:
                     break
                 else:
+                    closest = 0
+                    start_index = total_products * step
                     for product in product_stack:
-                        for pair in self.agent_search.pairs:
-                            if pair.cell1 == forklift and pair.cell2 == product \
-                                    and (pair.value < closest or not closest):
+                        for index, pair in enumerate(self.agent_search.pairs[start_index:], start=start_index+1):
+                            if index > start_index+total_products:
+                                break
+                            if pair.cell2 == self.products[product] and (pair.value < closest or not closest):
                                 closest = pair.value
                                 product_pick = product
                     product_stack.remove(product_pick)
@@ -41,4 +44,3 @@ class WarehouseProblemGA(Problem):
         string = "# of products: "
         string += f'{len(self.products)}'
         return string
-

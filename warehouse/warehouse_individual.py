@@ -10,14 +10,21 @@ class WarehouseIndividual(IntVectorIndividual):
         # TODO
 
     def compute_fitness(self) -> float:
-        #somar as distncias entre os produtos ate encontrar um forklift. Nesse caso distancia ate à saida. Continuar a soma
+        #somar as distancias entre os produtos ate encontrar um forklift.
+        #Nesse caso distancia ate à saida. Continuar a soma
         self.fitness = 0
         for i in range(self.num_genes):
             pass
         return 0
 
     def build_genome(self, forklift_list: dict):
-        pass
+        gene = 0
+        for index, lista in enumerate(forklift_list):
+            self.genome[gene] = index * -1
+            gene += 1
+            for product in lista:
+                self.genome[gene] = product
+                gene += 1
 
     def obtain_all_path(self):
         # TODO
