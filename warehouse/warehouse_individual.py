@@ -18,6 +18,7 @@ class WarehouseIndividual(IntVectorIndividual):
 
     def build_genome(self, forklift_list: dict):
         gene = 0
+
         for key, lista in forklift_list.items():
             self.genome[gene] = key * -1
             gene += 1
