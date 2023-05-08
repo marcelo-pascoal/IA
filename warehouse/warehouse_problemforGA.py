@@ -12,9 +12,10 @@ class WarehouseProblemGA(Problem):
         self.agent_search = agent_search
 
     def generate_individual(self) -> "WarehouseIndividual":
-        total_products=len(self.products)
-        total_forklifts=len(self.forklifts)
+        total_products = len(self.products)
+        total_forklifts = len(self.forklifts)
         new_individual = WarehouseIndividual(self, total_forklifts + total_products)
+
         forklift_list = {i: [] for i in enumerate(self.forklifts)}
         product_stack = list(range(total_products))
         product_pick = None
@@ -27,8 +28,8 @@ class WarehouseProblemGA(Problem):
                     closest = 0
                     start_index = total_products * step
                     for product in product_stack:
-                        for index, pair in enumerate(self.agent_search.pairs[start_index:], start=start_index+1):
-                            if index > start_index+total_products:
+                        for index, pair in enumerate(self.agent_search.pairs[start_index:], start=start_index + 1):
+                            if index > start_index + total_products:
                                 break
                             if pair.cell2 == self.products[product] and (pair.value < closest or not closest):
                                 closest = pair.value

@@ -1,4 +1,3 @@
-
 import copy
 
 from agentsearch.problem import Problem
@@ -27,4 +26,11 @@ class WarehouseProblemSearch(Problem[WarehouseState]):
         return successor
 
     def is_goal(self, state: WarehouseState) -> bool:
-        return self.goal_position == state.matrix[state.line_forklift, state.column_forklift]
+        #caso se dirija para o EXIT
+        if not state.catch:
+            return self.goal_positiaon == state.matrix[state.line_forklift, state.column_forklift]
+        #caso se dirija para um produto
+        else:
+            return not abs(self.goal_position.line - state.line_forklift) + \
+                abs(self.goal_position.column - state.column_forklift) - 1
+
