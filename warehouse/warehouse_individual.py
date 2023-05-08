@@ -1,4 +1,3 @@
-
 from ga.individual_int_vector import IntVectorIndividual
 import constants
 
@@ -10,8 +9,8 @@ class WarehouseIndividual(IntVectorIndividual):
         # TODO
 
     def compute_fitness(self) -> float:
-        #somar as distancias entre os produtos ate encontrar um forklift.
-        #Nesse caso distancia ate à saida. Continuar a soma
+        # somar as distancias entre os produtos ate encontrar um forklift.
+        # Nesse caso distancia ate à saida. Continuar a soma
         self.fitness = 0
         for i in range(self.num_genes):
             pass
@@ -19,9 +18,10 @@ class WarehouseIndividual(IntVectorIndividual):
 
     def build_genome(self, forklift_list: dict):
         gene = 0
-        for index, lista in enumerate(forklift_list):
-            self.genome[gene] = index * -1
+        for key, lista in forklift_list.items():
+            self.genome[gene] = key * -1
             gene += 1
+
             for product in lista:
                 self.genome[gene] = product
                 gene += 1

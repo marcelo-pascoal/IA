@@ -16,7 +16,9 @@ class WarehouseProblemGA(Problem):
         total_forklifts = len(self.forklifts)
         new_individual = WarehouseIndividual(self, total_forklifts + total_products)
 
-        forklift_list = {i: [] for i in enumerate(self.forklifts)}
+        forklift_list = {}
+        for i in range(total_forklifts):
+            forklift_list[i] = []
         product_stack = list(range(total_products))
         product_pick = None
         while len(product_stack) != 0:
