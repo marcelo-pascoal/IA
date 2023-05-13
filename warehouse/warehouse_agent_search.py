@@ -1,7 +1,7 @@
 from typing import TypeVar
 
 import numpy as np
-
+import copy
 import constants
 from agentsearch.agent import Agent
 from agentsearch.state import State
@@ -46,26 +46,28 @@ class WarehouseAgentSearch(Agent):
             self.pairs.append(Pair(a, self.exit))
 
         for a in self.pairs:
-            cell_start = a.cell1
+            cell_start = Cell(a.cell1.line, a.cell1.column)
             if environment.matrix[cell_start.line][cell_start.column] != constants.FORKLIFT:
                 if environment.matrix[cell_start.line][cell_start.column - 1] == constants.EMPTY:
                     cell_start.column -= 1
                 else:
                     cell_start.column += 1
-            cell_goal = a.cell2
+            cell_goal = Cell(a.cell2.line, a.cell2.column)
             if environment.matrix[cell_goal.line][cell_goal.column] != constants.EXIT:
                 if environment.matrix[cell_goal.line][cell_goal.column - 1] == constants.EMPTY:
                     cell_goal.column -= 1
                 else:
                     cell_goal.column += 1
-            pair_state = environment
+            pair_state = copy.deepcopy(environment)
             pair_state.line_forklift = cell_start.line
             pair_state.column_forklift = cell_start.column
-
+            pair_state.goal_line = cell_goal.line
+            pair_state.goal_col = cell_goal.column
             ###########################
             # TODO --- solução errada
             ###########################
-            solution = Agent.solve_problem(self, WarehouseProblemSearch(pair_state, cell_goal))
+            problem = WarehouseProblemSearch(pair_state, cell_goal)
+            solution = Agent.solve_problem(self, problem)
             a.value += solution.cost
 
     def __str__(self) -> str:

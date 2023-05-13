@@ -13,8 +13,8 @@ class WarehouseState(State[Action]):
         super().__init__()
         # defenição das barreiras físicas e uso de uma variável para diferenciar entre produto e exit
         self.walls = {constants.PRODUCT_CATCH, constants.PRODUCT, constants.SHELF}
-        self.catch = 0
-
+        self.goal_line = 0
+        self.goal_col = 0
         self.rows = rows
         self.columns = columns
         self.matrix = np.full([self.rows, self.columns], fill_value=0, dtype=int)
@@ -28,10 +28,6 @@ class WarehouseState(State[Action]):
                 if self.matrix[i][j] == constants.EXIT:
                     self.line_exit = i
                     self.column_exit = j
-                if self.matrix[i][j] == constants.PRODUCT_CATCH:
-                    self.catch = 1
-                    self.line_product_catch = i
-                    self.column_product_catch = j
 
     #
     def can_move_up(self) -> bool:
