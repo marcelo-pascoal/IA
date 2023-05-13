@@ -11,14 +11,13 @@ class WarehouseState(State[Action]):
 
     def __init__(self, matrix: ndarray, rows, columns):
         super().__init__()
-        # TODO
+        # defenição das barreiras físicas e uso de uma variável para diferenciar entre produto e exit
+        self.walls = {constants.PRODUCT_CATCH, constants.PRODUCT, constants.SHELF}
+        self.catch = 0
 
         self.rows = rows
         self.columns = columns
         self.matrix = np.full([self.rows, self.columns], fill_value=0, dtype=int)
-
-        self.walls = {constants.PRODUCT_CATCH, constants.PRODUCT, constants.SHELF}
-        self.catch = 0
 
         for i in range(self.rows):
             for j in range(self.columns):
@@ -34,6 +33,7 @@ class WarehouseState(State[Action]):
                     self.line_product_catch = i
                     self.column_product_catch = j
 
+    #
     def can_move_up(self) -> bool:
         return self.line_forklift != 0 \
             and self.matrix[self.line_forklift - 1][self.column_forklift] not in self.walls
@@ -67,7 +67,7 @@ class WarehouseState(State[Action]):
 
     def move_left(self) -> None:
         self.matrix[self.line_forklift][self.column_forklift] = constants.EMPTY
-        self.line_forklift -= 1
+        self.column_forklift -= 1
         self.matrix[self.line_forklift][self.column_forklift] = constants.FORKLIFT
 
     def get_cell_color(self, row: int, column: int) -> Color:

@@ -9,18 +9,53 @@ class WarehouseIndividual(IntVectorIndividual):
         # TODO
 
     def compute_fitness(self) -> float:
-        # somar as distancias entre os produtos ate encontrar um forklift.
-        # Nesse caso distancia ate à saida. Continuar a soma
-        self.fitness = 0
-        for i in range(self.num_genes):
-            pass
-        return 0
+        products = self.problem.agent_search.products
+        forklifts = self.problem.agent_search.forklifts
+        total_products = len(products)
+        total_forklifts = len(forklifts)
+
+        loopback = False
+        gene = 0
+        soma = 0
+
+        products[self.genome[gene]]
+        while self.genome[gene] >= 0:
+            gene += 1
+            loopback = True
+        while gene < len(self.genome) - 1:
+            forklift = (self.genome[gene] + 1) * -1
+            gene += 1
+            while self.genome[gene] >= 0:
+                for pair in self.problem.agent_search.pairs[total_products * forklift:]:
+                    if pair.cell2 == products[self.genome[gene]]:
+                        soma += pair.value
+                        break
+                gene += 1
+                if gene + 1 > len(self.genome):
+                    break
+                if self.genome[gene] < 0:
+                    exit_pair = self.problem.agent_search.pairs[len(self.problem.agent_search.pairs) - (total_forklifts - forklift)]
+                    soma += exit_pair.value
+                    break
+        if loopback:
+            while self.genome[gene] >= 0:
+                for pair in self.problem.agent_search.pairs[total_products * forklift:]:
+                    if pair.cell2 == products[self.genome[gene]]:
+                        soma += pair.value
+                        break
+                gene += 1
+                if self.genome[gene] < 0:
+                    exit_pair = self.problem.agent_search.pairs[len(self.problem.agent_search.pairs) - (total_forklifts - forklift)]
+                    soma += exit_pair.value
+                    break
+
+        self.fitness = soma
+        return soma
 
     def build_genome(self, forklift_list: dict):
         gene = 0
-
         for key, lista in forklift_list.items():
-            self.genome[gene] = key * -1
+            self.genome[gene] = (key * -1) - 1
             gene += 1
 
             for product in lista:
