@@ -13,8 +13,10 @@ class WarehouseState(State[Action]):
         super().__init__()
         # defenição das barreiras físicas e uso de uma variável para diferenciar entre produto e exit
         self.walls = {constants.PRODUCT_CATCH, constants.PRODUCT, constants.SHELF}
+        # posicao objectivo
         self.goal_line = 0
         self.goal_col = 0
+
         self.rows = rows
         self.columns = columns
         self.matrix = np.full([self.rows, self.columns], fill_value=0, dtype=int)
@@ -29,7 +31,8 @@ class WarehouseState(State[Action]):
                     self.line_exit = i
                     self.column_exit = j
 
-    #
+    # verifica se o forklift se pode mover para determinada posição
+    # verifica se essa posição está nos limites da matriz E se n coresponde a uma barreira física
     def can_move_up(self) -> bool:
         return self.line_forklift != 0 \
             and self.matrix[self.line_forklift - 1][self.column_forklift] not in self.walls
@@ -46,6 +49,8 @@ class WarehouseState(State[Action]):
         return self.column_forklift != 0 \
             and self.matrix[self.line_forklift][self.column_forklift - 1] not in self.walls
 
+    # move o agente para a nova posição
+    # atualiza a posiçao do forklift e a matriz: posiçao antiga -> EMPTY ; nova -> FORKLIFT
     def move_up(self) -> None:
         self.matrix[self.line_forklift][self.column_forklift] = constants.EMPTY
         self.line_forklift -= 1

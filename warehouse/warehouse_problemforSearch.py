@@ -25,6 +25,6 @@ class WarehouseProblemSearch(Problem[WarehouseState]):
         action.execute(successor)
         return successor
 
+    # Verifica se a posição do forklift é a mesma que a posição objectivo
     def is_goal(self, state: WarehouseState) -> bool:
-        # Verifica se a posição do forklift é a mesma que a posição objectivo
         return self.goal_position == Cell(state.line_forklift, state.column_forklift)

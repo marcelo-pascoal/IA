@@ -622,8 +622,14 @@ class SearchSolver(threading.Thread):
 
     def run(self):
 
-        ''' corre a lista de pares para calcular o valor do A*'''
+        """
+        corre a lista de pares para calcular o valor do A* para cada par
+        """
+
         for pair in self.agent.pairs:
+            # copia o estado
+            pair_state = copy.deepcopy(self.agent.initial_environment)
+
             cell_start = copy.deepcopy(pair.cell1)
             # caso a celula do ponto de origem não seja um forklif
             if self.agent.initial_environment.matrix[cell_start.line][cell_start.column] != constants.FORKLIFT:
@@ -643,8 +649,7 @@ class SearchSolver(threading.Thread):
                     cell_goal.column -= 1
                 else:
                     cell_goal.column += 1
-            # copia o estado
-            pair_state = copy.deepcopy(self.agent.initial_environment)
+
             # define o ponto de partida
             pair_state.line_forklift = cell_start.line
             pair_state.column_forklift = cell_start.column
@@ -652,7 +657,7 @@ class SearchSolver(threading.Thread):
             pair_state.goal_line = cell_goal.line
             pair_state.goal_col = cell_goal.column
 
-            # acha a solução para um problema criado com usando o par criado e o ponto objectivo
+            # acha a solução para um problema instanciado usando o par criado e o ponto objectivo
             solution = self.agent.solve_problem(WarehouseProblemSearch(pair_state, cell_goal))
             pair.value = solution.cost
 

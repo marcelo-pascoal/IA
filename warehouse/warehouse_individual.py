@@ -19,15 +19,16 @@ class WarehouseIndividual(IntVectorIndividual):
         pair = None
 
         while gene < len(genome):
+            #array de duas dimensoes para o retorno esperado
             forklift_path = []
             loop = True
             steps = 0
             path = []
-            # proximo forklift
+            # próximo forklift
             forklift = (genome[gene] + 1) * -1
             while gene < len(genome) and loop:
                 gene += 1
-                # ultimo passo do forklift:   atingido o fim do genoma  ||    gene negativo (proximo forklift)
+                # último passo do forklift: atingido o fim do genoma || gene negativo (proximo forklift)
                 if gene == len(genome) or genome[gene] < 0:
                     if genome[gene - 1] < 0:
                         pair = self.pairs[len(self.pairs) - (self.total_forklifts - forklift)]
@@ -36,13 +37,13 @@ class WarehouseIndividual(IntVectorIndividual):
                         pair = self.pairs[(len(self.pairs) - (self.total_products - genome[gene - 1])) - self.total_forklifts]
                         path = pair.path[1:]
                     loop = False
-                # primeiro passo do forklift: gene-1 tem valor negativo (o proprio forklift)
+                # primeiro passo do forklift: gene-1 tem valor negativo (o próprio forklift)
                 elif genome[gene - 1] < 0:
                     for pair in self.pairs[self.total_products * forklift:]:
                         if pair.cell2 == self.products[genome[gene]]:
                             path = pair.path
                             break
-                # passo intermedio entre produtos gene -1 e gene sao positivos
+                # passo intermédio entre produtos gene -1 e gene sao positivos
                 else:
                     for pair in self.pairs[(self.total_products * self.total_forklifts):]:
                         if pair.cell1 == self.products[genome[gene-1]] and pair.cell2 == self.products[genome[gene]]:
