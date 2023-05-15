@@ -2,7 +2,9 @@ class Pair:
     def __init__(self, cell1, cell2):
         self.cell1 = cell1
         self.cell2 = cell2
+        # valor calculado pelo A*
         self.value = 0
+        # caminho desde cell1 até cell2
         self.path = []
 
     def hash(self):

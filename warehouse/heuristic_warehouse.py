@@ -10,6 +10,7 @@ class HeuristicWarehouse(Heuristic[WarehouseProblemSearch, WarehouseState]):
         self._lines_goal_matrix = None
         self._cols_goal_matrix = None
 
+    # Calcula a disatncia Manhattan desde a localização do forklift até aos goal
     def compute(self, state: WarehouseState) -> float:
         self._lines_goal_matrix = abs(state.goal_line - state.line_forklift)
         self._cols_goal_matrix = abs(state.goal_col - state.column_forklift)
