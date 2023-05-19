@@ -1,4 +1,5 @@
 from ga.individual_int_vector import IntVectorIndividual
+from warehouse.pair import Pair
 
 
 class WarehouseIndividual(IntVectorIndividual):
@@ -10,20 +11,15 @@ class WarehouseIndividual(IntVectorIndividual):
         self.total_products = len(self.products)
         self.total_forklifts = len(self.forklifts)
         self.pairs = self.problem.agent_search.pairs
-        self.all_path = []
+        self.all_path = {}
         self.steps = 0
 
     def compute_fitness(self) -> float:
         gene = soma = 0
         genome = self.fix_genome()
-        pair = None
 
         while gene < len(genome):
-            #array de duas dimensoes para o retorno esperado
-            forklift_path = []
             loop = True
-            steps = 0
-            path = []
             # próximo forklift
             forklift = (genome[gene] + 1) * -1
             while gene < len(genome) and loop:
@@ -32,33 +28,22 @@ class WarehouseIndividual(IntVectorIndividual):
                 if gene == len(genome) or genome[gene] < 0:
                     if genome[gene - 1] < 0:
                         pair = self.pairs[len(self.pairs) - (self.total_forklifts - forklift)]
-                        path = pair.path
                     else:
                         pair = self.pairs[(len(self.pairs) - (self.total_products - genome[gene - 1])) - self.total_forklifts]
-                        path = pair.path[1:]
                     loop = False
                 # primeiro passo do forklift: gene-1 tem valor negativo (o próprio forklift)
                 elif genome[gene - 1] < 0:
                     for pair in self.pairs[self.total_products * forklift:]:
                         if pair.cell2 == self.products[genome[gene]]:
-                            path = pair.path
                             break
                 # passo intermédio entre produtos gene -1 e gene sao positivos
                 else:
                     for pair in self.pairs[(self.total_products * self.total_forklifts):]:
                         if pair.cell1 == self.products[genome[gene-1]] and pair.cell2 == self.products[genome[gene]]:
-                            path = pair.path[1:]
                             break
                         elif pair.cell2 == self.products[genome[gene-1]] and pair.cell1 == self.products[genome[gene]]:
-                            path = pair.path[::-1][1:]
                             break
                 soma += pair.value
-                forklift_path.extend(path)
-                steps += len(path)
-
-            self.all_path.append(forklift_path)
-            if self.steps < steps:
-                self.steps = steps
 
         self.fitness = soma
         return soma
@@ -81,6 +66,55 @@ class WarehouseIndividual(IntVectorIndividual):
         return fixed_genome
 
     def obtain_all_path(self):
+        gene = 0
+        genome = self.fix_genome()
+        all_path = {}
+
+        while gene < len(genome):
+            loop = True
+            steps = 0
+            forklift_path = []
+            path = []
+
+            forklift = (genome[gene] + 1) * -1
+            shadow = self.total_forklifts + forklift
+            all_path[shadow] = []
+            # aqui é usada a mesma estrutura de decisão que na funcao compute_fitness para contruir o itenerario
+            while gene < len(genome) and loop:
+                gene += 1
+                if gene == len(genome) or genome[gene] < 0:
+                    if genome[gene - 1] < 0:
+                        pair = self.pairs[len(self.pairs) - (self.total_forklifts - forklift)]
+                        path = pair.path
+                    else:
+                        pair = self.pairs[(len(self.pairs) - (self.total_products - genome[gene - 1])) - self.total_forklifts]
+                        path = pair.path[1:]
+                    loop = False
+                elif genome[gene - 1] < 0:
+                    for pair in self.pairs[self.total_products * forklift:]:
+                        if pair.cell2 == self.products[genome[gene]]:
+                            path = pair.path
+                            break
+                else:
+                    for pair in self.pairs[(self.total_products * self.total_forklifts):]:
+                        if pair.cell1 == self.products[genome[gene-1]] and pair.cell2 == self.products[genome[gene]]:
+                            path = pair.path[1:]
+                            break
+                        elif pair.cell2 == self.products[genome[gene-1]] and pair.cell1 == self.products[genome[gene]]:
+                            path = pair.path[::-1][1:]
+                            pair = Pair(pair.cell2, pair.cell1)
+                            break
+                forklift_path.extend(path)
+                steps += len(path)
+                all_path[shadow].append([steps-1, pair.cell2.line, pair.cell2.column])
+
+            all_path[forklift] = forklift_path
+
+            if self.steps < steps:
+                self.steps = steps
+
+        self.all_path = {k: all_path[k] for k in sorted(all_path)}
+
         return self.all_path, self.steps
 
     def __str__(self):
