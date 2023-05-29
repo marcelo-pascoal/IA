@@ -9,6 +9,9 @@ from matplotlib.figure import Figure
 import queue
 import threading
 
+from warehouse.cell import Cell
+from warehouse.warehouse_problemforSearch import WarehouseProblemSearch
+
 import constants
 from ga.genetic_operators.mutation2 import Mutation2
 from ga.genetic_operators.mutation3 import Mutation3
@@ -22,8 +25,6 @@ from warehouse.warehouse_agent_search import WarehouseAgentSearch, read_state_fr
 from warehouse.warehouse_experiments_factory import WarehouseExperimentsFactory
 from warehouse.warehouse_problemforGA import WarehouseProblemGA
 from warehouse.warehouse_state import WarehouseState
-from warehouse.cell import Cell
-from warehouse.warehouse_problemforSearch import WarehouseProblemSearch
 
 matplotlib.use("TkAgg")
 
@@ -287,7 +288,7 @@ class Window(tk.Tk):
 
     def runSearch_button_clicked(self):
 
-        self.agent_search.search_method.stopped = False
+        self.agent_search.search_method.stopped=False
 
         self.text_problem.delete("1.0", "end")
 
@@ -371,7 +372,7 @@ class Window(tk.Tk):
             if done:
                 self.queue.queue.clear()
                 self.after_cancel(self.after_id)
-                self.after_id = None
+                self.after_id= None
                 self.solution_runner = None
                 self.manage_buttons(data_set=tk.NORMAL, runSearch=tk.DISABLED, runGA=tk.NORMAL, stop=tk.DISABLED,
                                     open_experiments=tk.NORMAL, run_experiments=tk.DISABLED,
@@ -410,6 +411,7 @@ class Window(tk.Tk):
             self.solver = None
             return
 
+
         if self.solution_runner is not None and self.solution_runner.thread_running:
             self.solution_runner.stop()
             self.queue.queue.clear()
@@ -430,6 +432,9 @@ class Window(tk.Tk):
                                 open_experiments=tk.NORMAL, run_experiments=tk.DISABLED, stop_experiments=tk.DISABLED,
                                 simulation=tk.DISABLED, stop_simulation=tk.DISABLED)
             self.genetic_algorithm = None
+
+
+
 
     def open_experiments_button_clicked(self):
         filename = fd.askopenfilename(initialdir='.')
@@ -616,34 +621,30 @@ class SearchSolver(threading.Thread):
         self.agent.stop()
 
     def run(self):
-        """
-                corre a lista de pares para calcular o valor do A* para cada par
-                """
-        pair_state = copy.copy(self.agent.initial_environment)
 
+        ''' corre a lista de pares para calcular o valor do A*'''
         for pair in self.agent.pairs:
-            # copia o estado
-
-            cell_start = copy.copy(pair.cell1)
-            # caso a celula do ponto de origem não seja um forklift
-            if pair_state.matrix[cell_start.line][cell_start.column] != constants.FORKLIFT:
+            cell_start = copy.deepcopy(pair.cell1)
+            # caso a celula do ponto de origem não seja um forklif
+            if self.agent.initial_environment.matrix[cell_start.line][cell_start.column] != constants.FORKLIFT:
                 # então é um produto. Verifica se a casa do lado esquerdo está vazia, senão: vazio à direita
                 # (!!PRODUTO N PODE ESTAR NO LIMITE ESQUERDO!!)
-                if pair_state.matrix[cell_start.line][cell_start.column - 1] == constants.EMPTY:
+                if self.agent.initial_environment.matrix[cell_start.line][cell_start.column - 1] == constants.EMPTY:
                     cell_start.column -= 1
                 else:
                     cell_start.column += 1
 
-            cell_goal = copy.copy(pair.cell2)
+            cell_goal = copy.deepcopy(pair.cell2)
             # caso a celula do ponto objectivo não seja a saída
-            if pair_state.matrix[cell_goal.line][cell_goal.column] != constants.EXIT:
+            if self.agent.initial_environment.matrix[cell_goal.line][cell_goal.column] != constants.EXIT:
                 # então é um produto. Verifica se a casa do lado esquerdo está vazia, senão: vazio à direita
                 # (!!PRODUTO N PODE ESTAR NO LIMITE ESQUERDO!!)
-                if pair_state.matrix[cell_goal.line][cell_goal.column - 1] == constants.EMPTY:
+                if self.agent.initial_environment.matrix[cell_goal.line][cell_goal.column - 1] == constants.EMPTY:
                     cell_goal.column -= 1
                 else:
                     cell_goal.column += 1
-
+            # copia o estado
+            pair_state = copy.deepcopy(self.agent.initial_environment)
             # define o ponto de partida
             pair_state.line_forklift = cell_start.line
             pair_state.column_forklift = cell_start.column
@@ -651,14 +652,14 @@ class SearchSolver(threading.Thread):
             pair_state.goal_line = cell_goal.line
             pair_state.goal_col = cell_goal.column
 
-            # acha a solução para um problema instanciado usando o par criado e o ponto objectivo
+            # acha a solução para um problema criado com usando o par criado e o ponto objectivo
             solution = self.agent.solve_problem(WarehouseProblemSearch(pair_state, cell_goal))
             pair.value = solution.cost
 
             # cria o caminho (passos) entre pontos incluíndo o ponto de partida
             path_line = cell_start.line
             path_column = cell_start.column
-            pair.path.append(Cell(path_line, path_column))
+            pair.path.append(Cell(cell_start.line, cell_start.column))
             for action in solution.actions:
                 match action.__str__():
                     case "UP":
@@ -670,8 +671,12 @@ class SearchSolver(threading.Thread):
                     case "RIGHT":
                         path_column += 1
                 pair.path.append(Cell(path_line, path_column))
+                self.gui.text_problem.insert(tk.END, "PAR("+pair.__str__()+")\n")
 
-        self.agent.search_method.stopped = True
+        self.gui.text_problem.insert(1.0, "FINISHED")
+
+
+        self.agent.search_method.stopped=True
         self.gui.problem_ga = WarehouseProblemGA(self.agent)
         self.gui.manage_buttons(data_set=tk.NORMAL, runSearch=tk.DISABLED, runGA=tk.NORMAL, stop=tk.DISABLED,
                                 open_experiments=tk.NORMAL, run_experiments=tk.DISABLED, stop_experiments=tk.DISABLED,
@@ -700,26 +705,21 @@ class SolutionRunner(threading.Thread):
             new_cells.clear()
             if not self.thread_running:
                 return
-            for i, j in enumerate(forklift_path):
-                # coloca produtos apanhados a preto
-                if i >= len(forklift_path) / 2:
-                    if len(forklift_path[j]) > 1 and step+1 == forklift_path[j][0][0]:
-                        product_catch = forklift_path[j].pop(0)
-                        self.state.matrix[product_catch[1]][product_catch[2]] = constants.PRODUCT_CATCH
+            for j in range(len(forklift_path)):
+                if old_cell[j] is None:
+                    firs_cell = forklift_path[j][0]
+                    old_cell[j] = firs_cell
+                if step < len(forklift_path[j]) - 1:
+                    if old_cell[j] not in new_cells:
+                        self.state.matrix[old_cell[j].line][old_cell[j].column] = constants.EMPTY
+                    new_cell = forklift_path[j][step + 1]
+                    new_cells.append(new_cell)
+                    self.state.matrix[new_cell.line][new_cell.column] = constants.FORKLIFT
+                    old_cell[j] = new_cell
                 else:
-                    #loop fornecido
-                    if old_cell[j] is None:
-                        firs_cell = forklift_path[j][0]
-                        old_cell[j] = firs_cell
-                    if step < len(forklift_path[j]) - 1:
-                        if old_cell[j] not in new_cells:
-                            self.state.matrix[old_cell[j].line][old_cell[j].column] = constants.EMPTY
-                        new_cell = forklift_path[j][step + 1]
-                        new_cells.append(new_cell)
-                        self.state.matrix[new_cell.line][new_cell.column] = constants.FORKLIFT
-                        old_cell[j] = new_cell
-                    else:
-                        self.state.matrix[old_cell[j].line][old_cell[j].column] = constants.FORKLIFT
+                    self.state.matrix[old_cell[j].line][old_cell[j].column] = constants.FORKLIFT
 
+                # TODO put the catched products in black
             self.gui.queue.put((copy.deepcopy(self.state), step, False))
         self.gui.queue.put((None, steps, True))  # Done
+
