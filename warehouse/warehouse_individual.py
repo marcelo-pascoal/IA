@@ -1,6 +1,6 @@
 from ga.individual_int_vector import IntVectorIndividual
 from warehouse.pair import Pair
-
+import numpy as np
 
 class WarehouseIndividual(IntVectorIndividual):
 
@@ -21,22 +21,22 @@ class WarehouseIndividual(IntVectorIndividual):
         while gene < len(genome):
             loop = True
             # próximo forklift
-            forklift = (genome[gene] + 1) * -1
+            forklift = genome[gene] - self.total_products
             while gene < len(genome) and loop:
                 gene += 1
-                # último passo do forklift: atingido o fim do genoma || gene negativo (proximo forklift)
-                if gene == len(genome) or genome[gene] < 0:
-                    if genome[gene - 1] < 0:
+                # último passo do forklift: atingido o fim do genoma || gene maior q total_products (proximo forklift)
+                if gene == len(genome) or genome[gene] >= self.total_products:
+                    if genome[gene - 1] >= self.total_products:
                         pair = self.pairs[len(self.pairs) - (self.total_forklifts - forklift)]
                     else:
                         pair = self.pairs[(len(self.pairs) - (self.total_products - genome[gene - 1])) - self.total_forklifts]
                     loop = False
-                # primeiro passo do forklift: gene-1 tem valor negativo (o próprio forklift)
-                elif genome[gene - 1] < 0:
+                # primeiro passo do forklift: gene-1 tem valor maior q total_products (o próprio forklift)
+                elif genome[gene - 1] >= self.total_products:
                     for pair in self.pairs[self.total_products * forklift:]:
                         if pair.cell2 == self.products[genome[gene]]:
                             break
-                # passo intermédio entre produtos gene -1 e gene sao positivos
+                # passo intermédio entre produtos
                 else:
                     for pair in self.pairs[(self.total_products * self.total_forklifts):]:
                         if pair.cell1 == self.products[genome[gene-1]] and pair.cell2 == self.products[genome[gene]]:
@@ -51,19 +51,19 @@ class WarehouseIndividual(IntVectorIndividual):
     def build_genome(self, forklift_list: dict):
         gene = 0
         for key, lista in forklift_list.items():
-            self.genome[gene] = (key * -1) - 1
+            self.genome[gene] = key+self.total_products
             gene += 1
 
             for product in lista:
                 self.genome[gene] = product
                 gene += 1
 
+    # corrige o genoma para calculo de fitness ou caminho para simulaçao
     def fix_genome(self) -> list:
-        gene = 0
-        fixed_genome = self.genome
-        while fixed_genome[gene] >= 0:
+        fixed_genome = self.genome.tolist()
+        while fixed_genome[0] < self.total_products:
             fixed_genome.append(fixed_genome.pop(0))
-        return fixed_genome
+        return np.array(fixed_genome)
 
     def obtain_all_path(self):
         gene = 0
@@ -75,26 +75,30 @@ class WarehouseIndividual(IntVectorIndividual):
             steps = 0
             forklift_path = []
             path = []
-
-            forklift = (genome[gene] + 1) * -1
+            # próximo forklift
+            forklift = genome[gene] - self.total_products
             shadow = self.total_forklifts + forklift
             all_path[shadow] = []
             # aqui é usada a mesma estrutura de decisão que na funcao compute_fitness para contruir o itenerario
             while gene < len(genome) and loop:
                 gene += 1
-                if gene == len(genome) or genome[gene] < 0:
-                    if genome[gene - 1] < 0:
+                # último passo do forklift: atingido o fim do genoma || gene maior q total_products (proximo forklift)
+                if gene == len(genome) or genome[gene] >= self.total_products:
+                    # caso gene - 1 seja forklift tb então é o unico movimento
+                    if genome[gene - 1] >= self.total_products:
                         pair = self.pairs[len(self.pairs) - (self.total_forklifts - forklift)]
                         path = pair.path
                     else:
                         pair = self.pairs[(len(self.pairs) - (self.total_products - genome[gene - 1])) - self.total_forklifts]
                         path = pair.path[1:]
                     loop = False
-                elif genome[gene - 1] < 0:
+                # primeiro passo do forklift: gene-1 tem valor maior q total_products (o próprio forklift)
+                elif genome[gene - 1] >= self.total_products:
                     for pair in self.pairs[self.total_products * forklift:]:
                         if pair.cell2 == self.products[genome[gene]]:
                             path = pair.path
                             break
+                # passo intermédio entre produtos
                 else:
                     for pair in self.pairs[(self.total_products * self.total_forklifts):]:
                         if pair.cell1 == self.products[genome[gene-1]] and pair.cell2 == self.products[genome[gene]]:

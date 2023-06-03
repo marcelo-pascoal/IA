@@ -670,6 +670,9 @@ class SearchSolver(threading.Thread):
                     case "RIGHT":
                         path_column += 1
                 pair.path.append(Cell(path_line, path_column))
+                self.gui.text_problem.insert(tk.END, "PAR(" + pair.__str__() + ")\n")
+
+
 
         self.agent.search_method.stopped = True
         self.gui.problem_ga = WarehouseProblemGA(self.agent)
