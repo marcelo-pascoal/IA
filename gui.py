@@ -705,10 +705,11 @@ class SolutionRunner(threading.Thread):
                 return
             for i, j in enumerate(forklift_path):
                 # coloca produtos apanhados a preto
-                if i >= len(forklift_path) / 2:
-                    if len(forklift_path[j]) > 1 and step+1 == forklift_path[j][0][0]:
+                if (i == len(forklift_path) - 1):
+                    while len(forklift_path[j]) > 0 and step+1 == forklift_path[j][0][0]:
                         product_catch = forklift_path[j].pop(0)
-                        self.state.matrix[product_catch[1]][product_catch[2]] = constants.PRODUCT_CATCH
+                        if product_catch[1] != self.state.line_exit and product_catch[1] != self.state.column_exit:
+                            self.state.matrix[product_catch[1]][product_catch[2]] = constants.PRODUCT_CATCH
                 else:
                     #loop fornecido
                     if old_cell[j] is None:

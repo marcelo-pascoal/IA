@@ -15,10 +15,11 @@ class WarehouseIndividual(IntVectorIndividual):
         self.steps = 0
 
     def compute_fitness(self) -> float:
-        gene = soma = 0
+        gene = soma = max_soma = 0
         genome = self.fix_genome()
 
         while gene < len(genome):
+            soma = 0
             loop = True
             # próximo forklift
             forklift = genome[gene] - self.total_products
@@ -44,9 +45,11 @@ class WarehouseIndividual(IntVectorIndividual):
                         elif pair.cell2 == self.products[genome[gene-1]] and pair.cell1 == self.products[genome[gene]]:
                             break
                 soma += pair.value
+            if soma > max_soma:
+                max_soma = soma
 
-        self.fitness = soma
-        return soma
+        self.fitness = max_soma
+        return max_soma
 
     def build_genome(self, forklift_list: dict):
         gene = 0
@@ -69,7 +72,8 @@ class WarehouseIndividual(IntVectorIndividual):
         gene = 0
         genome = self.fix_genome()
         all_path = {}
-
+        goals = self.total_forklifts
+        all_path[goals] = []
         while gene < len(genome):
             loop = True
             steps = 0
@@ -77,8 +81,6 @@ class WarehouseIndividual(IntVectorIndividual):
             path = []
             # próximo forklift
             forklift = genome[gene] - self.total_products
-            shadow = self.total_forklifts + forklift
-            all_path[shadow] = []
             # aqui é usada a mesma estrutura de decisão que na funcao compute_fitness para contruir o itenerario
             while gene < len(genome) and loop:
                 gene += 1
@@ -110,13 +112,14 @@ class WarehouseIndividual(IntVectorIndividual):
                             break
                 forklift_path.extend(path)
                 steps += len(path)
-                all_path[shadow].append([steps-1, pair.cell2.line, pair.cell2.column])
+                all_path[goals].append([steps-1, pair.cell2.line, pair.cell2.column])
 
             all_path[forklift] = forklift_path
 
             if self.steps < steps:
                 self.steps = steps
 
+        all_path[goals] = sorted(all_path[goals], key=lambda x: x)
         self.all_path = {k: all_path[k] for k in sorted(all_path)}
 
         return self.all_path, self.steps
