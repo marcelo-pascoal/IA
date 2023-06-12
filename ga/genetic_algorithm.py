@@ -43,8 +43,8 @@ class GeneticAlgorithm:
         self.fire_generation_ended()
 
         while self.generation < self.max_generations and not self.stopped:
-            #self.population = self.selection_method.run(self.population)
-            #self.recombination_method.run(self.population)
+            self.population = self.selection_method.run(self.population)
+            self.recombination_method.run(self.population)
             self.mutation_method.run(self.population)
             self.population.evaluate()
             if self.population.best_individual.better_than(self.best_in_run):

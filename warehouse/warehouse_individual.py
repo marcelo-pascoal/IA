@@ -63,10 +63,10 @@ class WarehouseIndividual(IntVectorIndividual):
 
     # corrige o genoma para calculo de fitness ou caminho para simulaçao
     def fix_genome(self) -> list:
-        fixed_genome = self.genome.tolist()
+        fixed_genome = list(self.genome)
         while fixed_genome[0] < self.total_products:
             fixed_genome.append(fixed_genome.pop(0))
-        return np.array(fixed_genome)
+        return fixed_genome
 
     def obtain_all_path(self):
         gene = 0
