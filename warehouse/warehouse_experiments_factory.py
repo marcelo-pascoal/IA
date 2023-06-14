@@ -29,6 +29,13 @@ class WarehouseExperimentsFactory(ExperimentsFactory):
         self.experiment = None
 
     def build_experiment(self) -> Experiment:
+        #INITIAL GENERATION
+        match self.get_parameter_value('Initial_generation'):
+            case 'random':
+                self.problem.generation_method = 'random'
+            case 'informed':
+                self.problem.generation_method = 'informed'
+
         self.num_runs = int(self.get_parameter_value('Runs'))
         self.population_size = int(self.get_parameter_value('Population_size'))
         self.max_generations = int(self.get_parameter_value('Max_generations'))

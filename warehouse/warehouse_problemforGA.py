@@ -10,8 +10,8 @@ class WarehouseProblemGA(Problem):
         self.products = agent_search.products
         self.agent_search = agent_search
 
-    # geraçao de individuo (product pick)
-    def generate_individual(self) -> "WarehouseIndividual":
+    # geraçao de individuo informado (product pick)
+    def generate_informed_individual(self) -> "WarehouseIndividual":
         total_products = len(self.products)
         total_forklifts = len(self.forklifts)
         # criação de indivíduo com tamanho do genoma = numero de forklifts + numero de produtos
@@ -58,7 +58,15 @@ class WarehouseProblemGA(Problem):
                     forklift_list[step].append(product_pick)
 
         # constroi o genoma do individuo
-        new_individual.build_genome(forklift_list)
+
+        new_individual.build_informed_genome(forklift_list)
+        return new_individual
+
+    # geração aleatoria de individuo
+    def generate_individual(self) -> "WarehouseIndividual":
+        size = len(self.products) + len(self.forklifts)
+        new_individual = WarehouseIndividual(self, size)
+        new_individual.build_genome(size)
         return new_individual
 
     def __str__(self):
