@@ -15,13 +15,13 @@ class WarehouseIndividual(IntVectorIndividual):
         self.pairs = self.problem.agent_search.pairs
         self.all_path = {}
         self.steps = 0
+        self.collisions = 0
 
     def compute_fitness(self) -> float:
         gene = self.fitness = 0
         genome = self.fix_genome()
         all_path = {}
-        goals = self.total_forklifts
-        all_path[goals] = []
+        goals = []
 
         while gene < len(genome):
             steps = 0
@@ -61,7 +61,7 @@ class WarehouseIndividual(IntVectorIndividual):
                             break
                 forklift_path.extend(path)
                 steps += len(path)
-                all_path[goals].append([steps - 1, pair.cell2.line, pair.cell2.column])
+                goals.append([steps - 1, pair.cell2.line, pair.cell2.column])
                 soma += pair.value
 
             all_path[forklift] = forklift_path
@@ -71,9 +71,25 @@ class WarehouseIndividual(IntVectorIndividual):
             if self.fitness < soma:
                 self.fitness = soma
 
-        all_path[goals] = sorted(all_path[goals], key=lambda x: x)
-        self.all_path = {k: all_path[k] for k in sorted(all_path)}
+        all_path = dict(sorted(all_path.items(), key=lambda item: len(item[1])))
+        goals = sorted(goals, key=lambda x: x)
+        all_path[self.total_forklifts] = goals
+        self.all_path = all_path
+        self.count_collisions()
+        self.fitness = self.fitness*(1.1 ** self.collisions)
         return self.fitness
+
+    def count_collisions(self):
+        collisions = step = 0
+        paths_list = list(self.all_path.values())[:-1]
+        while len(paths_list) > 1:
+            refpath = paths_list.pop(0)
+            while step < len(refpath):
+                for path in paths_list:
+                    if refpath[step] == path[step]:
+                        collisions += 1
+                step += 1
+        self.collisions = collisions
 
     # metodo que constroi o genoma informado do indivíduo
     def build_informed_genome(self, forklift_list: dict):
@@ -104,7 +120,7 @@ class WarehouseIndividual(IntVectorIndividual):
     def __str__(self):
         string = 'Fitness: ' + f'{self.fitness}' + '\n'
         string += str(self.genome) + "\n\n"
-        # TODO
+        string += 'Collisions: ' + f'{self.collisions}' + '\n'
         return string
 
     def better_than(self, other: "WarehouseIndividual") -> bool:
@@ -115,5 +131,7 @@ class WarehouseIndividual(IntVectorIndividual):
         new_instance = self.__class__(self.problem, self.num_genes)
         new_instance.genome = self.genome.copy()
         new_instance.fitness = self.fitness
-        # TODO
+        new_instance.all_path = self.all_path
+        new_instance.steps = self.steps
+        new_instance.collisions = self.collisions
         return new_instance
