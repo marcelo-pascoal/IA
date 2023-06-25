@@ -16,10 +16,8 @@ class GeneticAlgorithm:
                  max_generations: int,
                  selection_method: SelectionMethod,
                  recombination: "Recombination",
-                 mutation: "Mutation",
-                 generation: str):
+                 mutation: "Mutation"):
         GeneticAlgorithm.rand = Random(seed)
-        self.generation_method = generation
         self.population_size = population_size
         self.max_generations = max_generations
         self.selection_method = selection_method
@@ -39,7 +37,7 @@ class GeneticAlgorithm:
         if self.problem is None:
             return None
         self.generation = 0
-        self.population = Population(self.population_size, self.problem, self.generation_method)
+        self.population = Population(self.population_size, self.problem)
         self.population.evaluate()
         self.best_in_run = self.population.best_individual
         self.fire_generation_ended()

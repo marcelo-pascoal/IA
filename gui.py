@@ -75,91 +75,84 @@ class Window(tk.Tk):
                                                  width=25)
         self.label_initial_generation.grid(row=0, column=0)
 
-        initial_generation_methods = ['random', 'informed']
-
-        self.combo_initial_generation = ttk.Combobox(master=self.panel_parameters, state="readonly",
-                                                     values=initial_generation_methods, width=14)
-        self.combo_initial_generation.set(initial_generation_methods[0])
-        self.combo_initial_generation.grid(row=0, column=1)
-
         self.label_seed = tk.Label(master=self.panel_parameters, text="Seed: ", anchor="e", width=25)
-        self.label_seed.grid(row=1, column=0)
+        self.label_seed.grid(row=0, column=0)
 
         self.entry_seed = tk.Entry(master=self.panel_parameters, width=17)
         self.entry_seed.insert(tk.END, '1')
-        self.entry_seed.grid(row=1, column=1)
+        self.entry_seed.grid(row=0, column=1)
 
         self.label_population_size = tk.Label(master=self.panel_parameters, text="Population size: ",
                                               anchor="e", width=25)
-        self.label_population_size.grid(row=2, column=0)
+        self.label_population_size.grid(row=1, column=0)
 
         self.entry_population_size = tk.Entry(master=self.panel_parameters, width=17)
         self.entry_population_size.insert(tk.END, '100')
-        self.entry_population_size.grid(row=2, column=1)
+        self.entry_population_size.grid(row=1, column=1)
 
         self.label_num_generations = tk.Label(master=self.panel_parameters, text="# of generations: ",
                                               anchor="e", width=25)
-        self.label_num_generations.grid(row=3, column=0)
+        self.label_num_generations.grid(row=2, column=0)
 
         self.entry_num_generations = tk.Entry(master=self.panel_parameters, width=17)
         self.entry_num_generations.insert(tk.END, '100')
-        self.entry_num_generations.grid(row=3, column=1)
+        self.entry_num_generations.grid(row=2, column=1)
 
         self.label_selection_methods = tk.Label(master=self.panel_parameters, text="Selection method: ",
                                                 anchor="e", width=25)
-        self.label_selection_methods.grid(row=4, column=0)
+        self.label_selection_methods.grid(row=3, column=0)
 
         selection_methods = ['Tournament']
 
         self.combo_selection_methods = ttk.Combobox(master=self.panel_parameters, state="readonly",
                                                     values=selection_methods, width=14)
         self.combo_selection_methods.set(selection_methods[0])
-        self.combo_selection_methods.grid(row=4, column=1)
+        self.combo_selection_methods.grid(row=3, column=1)
 
         self.label_tournament_size = tk.Label(master=self.panel_parameters, text="Tournament size: ",
                                               anchor="e", width=25)
-        self.label_tournament_size.grid(row=5, column=0)
+        self.label_tournament_size.grid(row=4, column=0)
 
         self.entry_tournament_size = tk.Entry(master=self.panel_parameters, width=17)
         self.entry_tournament_size.insert(tk.END, '2')
-        self.entry_tournament_size.grid(row=5, column=1)
+        self.entry_tournament_size.grid(row=4, column=1)
 
         self.label_recombination_methods = tk.Label(master=self.panel_parameters, text="Recombination method: ",
                                                     anchor="e", width=25)
-        self.label_recombination_methods.grid(row=6, column=0)
+        self.label_recombination_methods.grid(row=5, column=0)
 
         recombination_methods = ['PMX', 'Recombination2', 'Recombination3']
 
         self.combo_recombination_methods = ttk.Combobox(master=self.panel_parameters, state="readonly",
                                                         values=recombination_methods, width=14)
         self.combo_recombination_methods.set(recombination_methods[0])
-        self.combo_recombination_methods.grid(row=6, column=1)
+        self.combo_recombination_methods.grid(row=5, column=1)
 
         self.label_recombination_prob = tk.Label(master=self.panel_parameters, text="Recombination prob.: ",
                                                  anchor="e", width=25)
-        self.label_recombination_prob.grid(row=7, column=0)
+        self.label_recombination_prob.grid(row=6, column=0)
 
         self.entry_recombination_prob = tk.Entry(master=self.panel_parameters, width=17)
         self.entry_recombination_prob.insert(tk.END, '0.7')
-        self.entry_recombination_prob.grid(row=7, column=1)
+        self.entry_recombination_prob.grid(row=6, column=1)
 
         self.label_mutation_methods = tk.Label(master=self.panel_parameters, text="Mutation method: ",
                                                anchor="e", width=25)
-        self.label_mutation_methods.grid(row=8, column=0)
+        self.label_mutation_methods.grid(row=7, column=0)
 
         mutation_methods = ['Insert', 'Mutation2', 'Mutation3']
 
         self.combo_mutation_methods = ttk.Combobox(master=self.panel_parameters, state="readonly",
                                                    values=mutation_methods, width=14)
         self.combo_mutation_methods.set(mutation_methods[0])
-        self.combo_mutation_methods.grid(row=8, column=1)
+        self.combo_mutation_methods.grid(row=7, column=1)
 
         self.label_mutation_prob = tk.Label(master=self.panel_parameters, text="Mutation prob.: ", anchor="e", width=25)
-        self.label_mutation_prob.grid(row=9, column=0)
+        self.label_mutation_prob.grid(row=8, column=0)
 
         self.entry_mutation_prob = tk.Entry(master=self.panel_parameters, width=17)
         self.entry_mutation_prob.insert(tk.END, '0.1')
-        self.entry_mutation_prob.grid(row=9, column=1)
+        self.entry_mutation_prob.grid(row=8, column=1)
 
         # 1.1.2 Run Panel
 
@@ -336,17 +329,13 @@ class Window(tk.Tk):
             Mutation2(float(self.entry_mutation_prob.get())) if mutation_methods_index == 1 else \
                 Mutation3(float(self.entry_mutation_prob.get()))
 
-        generation_methods_index = self.combo_initial_generation.current()
-        generation_method = 'random' if generation_methods_index == 0 else 'informed'
-
         self.genetic_algorithm = GeneticAlgorithmThread(
             int(self.entry_seed.get()),
             int(self.entry_population_size.get()),
             int(self.entry_num_generations.get()),
             selection_method,
             recombination_method,
-            mutation_method,
-            generation_method
+            mutation_method
         )
 
         self.queue.queue.clear()

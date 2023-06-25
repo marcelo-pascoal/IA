@@ -5,11 +5,12 @@ from ga.individual import Individual
 
 class Population:
 
-    def __init__(self, size: int, problem: Problem = None, method: str = 'random'):
+    def __init__(self, size: int, problem: Problem = None):
         self.size = size
         self.individuals = []
         self.best_individual = None
         self.problem = problem
+        method = "random"
         if problem is not None:
             match method:
                 case 'random':

@@ -1,3 +1,7 @@
+import copy
+import constants
+from warehouse.cell import Cell
+from warehouse.warehouse_problemforSearch import WarehouseProblemSearch
 from experiments.experiments_factory import ExperimentsFactory
 from experiments.experiment import Experiment
 from experiments.experiment_listener import ExperimentListener
@@ -29,12 +33,6 @@ class WarehouseExperimentsFactory(ExperimentsFactory):
         self.experiment = None
 
     def build_experiment(self) -> Experiment:
-        #INITIAL GENERATION
-        match self.get_parameter_value('Initial_generation'):
-            case 'random':
-                self.problem.generation_method = 'random'
-            case 'informed':
-                self.problem.generation_method = 'informed'
 
         self.num_runs = int(self.get_parameter_value('Runs'))
         self.population_size = int(self.get_parameter_value('Population_size'))
@@ -66,11 +64,64 @@ class WarehouseExperimentsFactory(ExperimentsFactory):
             case 'mutation3':
                 self.mutation_method = Mutation3(mutation_probability)
 
-        # PROBLEM
+        # PROBLEMagent_search = {WarehouseAgentSearch} Pairs:\n4-4 / 1-4: 0\n\n4-4 / 2-2: 0\n\n4-4 / 3-1: 0\n\n1-4 / 2-2: 0\n\n1-4 / 3-1: 0\n\n2-2 / 3-1: 0\n\n1-4 / 0-4: 0\n\n2-2 / 0-4: 0\n\n3-1 / 0-4: 0\n\n4-4 / 0-4: 0\n\n
         matrix, num_rows, num_columns = read_state_from_txt_file(self.get_parameter_value("Problem_file"))
 
         agent_search = WarehouseAgentSearch(WarehouseState(matrix, num_rows, num_columns))
-        # TODO calculate pair distances
+        """
+                        corre a lista de pares para calcular o valor do A* para cada par
+                        """
+        pair_state = copy.copy(agent_search.initial_environment)
+
+        for pair in agent_search.pairs:
+            # copia o estado
+
+            cell_start = copy.copy(pair.cell1)
+            # caso a celula do ponto de origem não seja um forklift
+            if pair_state.matrix[cell_start.line][cell_start.column] != constants.FORKLIFT:
+                # então é um produto. Verifica se a casa do lado esquerdo está vazia, senão: vazio à direita
+                # (!!PRODUTO N PODE ESTAR NO LIMITE ESQUERDO!!)
+                if pair_state.matrix[cell_start.line][cell_start.column - 1] == constants.EMPTY:
+                    cell_start.column -= 1
+                else:
+                    cell_start.column += 1
+
+            cell_goal = copy.copy(pair.cell2)
+            # caso a celula do ponto objectivo não seja a saída
+            if pair_state.matrix[cell_goal.line][cell_goal.column] != constants.EXIT:
+                # então é um produto. Verifica se a casa do lado esquerdo está vazia, senão: vazio à direita
+                # (!!PRODUTO N PODE ESTAR NO LIMITE ESQUERDO!!)
+                if pair_state.matrix[cell_goal.line][cell_goal.column - 1] == constants.EMPTY:
+                    cell_goal.column -= 1
+                else:
+                    cell_goal.column += 1
+
+            # define o ponto de partida
+            pair_state.line_forklift = cell_start.line
+            pair_state.column_forklift = cell_start.column
+            # define o ponto objectivo
+            pair_state.goal_line = cell_goal.line
+            pair_state.goal_col = cell_goal.column
+
+            # acha a solução para um problema instanciado usando o par criado e o ponto objectivo
+            solution = agent_search.solve_problem(WarehouseProblemSearch(pair_state, cell_goal))
+            pair.value = solution.cost
+
+            # cria o caminho (passos) entre pontos incluíndo o ponto de partida
+            path_line = cell_start.line
+            path_column = cell_start.column
+            pair.path.append(Cell(path_line, path_column))
+            for action in solution.actions:
+                match action.__str__():
+                    case "UP":
+                        path_line -= 1
+                    case "DOWN":
+                        path_line += 1
+                    case "LEFT":
+                        path_column -= 1
+                    case "RIGHT":
+                        path_column += 1
+                pair.path.append(Cell(path_line, path_column))
         self.problem = WarehouseProblemGA(agent_search)
 
         experiment_textual_representation = self.build_experiment_textual_representation()

@@ -16,8 +16,7 @@ class GeneticAlgorithmThread(GeneticAlgorithm, threading.Thread):
                  max_generations: int,
                  selection_method: SelectionMethod,
                  recombination: Recombination,
-                 mutation: Mutation,
-                 generation: str):
+                 mutation: Mutation):
         GeneticAlgorithm.__init__(
             self,
             seed,
@@ -25,8 +24,7 @@ class GeneticAlgorithmThread(GeneticAlgorithm, threading.Thread):
             max_generations,
             selection_method,
             recombination,
-            mutation,
-            generation)
+            mutation)
         threading.Thread.__init__(self)
         self.tkinter_listeners = []
 
