@@ -1,6 +1,6 @@
 from ga.individual_int_vector import IntVectorIndividual
 from warehouse.pair import Pair
-from typing import Tuple
+import numpy as np
 import random
 
 
@@ -22,6 +22,8 @@ class WarehouseIndividual(IntVectorIndividual):
         genome = self.fix_genome()
         all_path = {}
         goals = []
+        values = []
+        average = 0
 
         while gene < len(genome):
             steps = 0
@@ -65,18 +67,31 @@ class WarehouseIndividual(IntVectorIndividual):
                 soma += pair.value
 
             all_path[forklift] = forklift_path
+            values.append(soma)
+            # média dos tempos de cada forklift
+            average += soma/self.total_forklifts
 
-            if self.steps < steps:
-                self.steps = steps
-            if self.fitness < soma:
-                self.fitness = soma
+        #Calcular diferenças ao quadrado
+        squared_diff = [(time - average) ** 2 for time in values]
+        #Calcular variancia e desvio padrão
+        variance = np.mean(squared_diff)
+        std_deviation = np.sqrt(variance)
+        # chama o método que encontra todas as colisões
+        self.count_collisions()
+
+        # Calcula o fitness como a soma dos tempos
+        # somado com a penalização calculada
+        # penalizado em 1% por cada colisão
+
+        penalty = 0.1 * std_deviation
+        self.fitness = (sum(values) + penalty) * (1.01 ** self.collisions)
 
         all_path = dict(sorted(all_path.items(), key=lambda item: len(item[1])))
         goals = sorted(goals, key=lambda x: x)
         all_path[self.total_forklifts] = goals
         self.all_path = all_path
-        self.count_collisions()
-        self.fitness = self.fitness*(1.1 ** self.collisions)
+
+
         return self.fitness
 
     def count_collisions(self):
