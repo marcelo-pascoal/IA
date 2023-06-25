@@ -59,4 +59,4 @@ class Recombination3(Recombination):
         ind2.genome = child1
 
     def __str__(self):
-        return "PMX recombination (" + f'{self.probability}' + ")"
+        return "PMX - (Mantem genes) recombination (" + f'{self.probability}' + ")"
